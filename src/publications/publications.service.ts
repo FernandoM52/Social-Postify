@@ -1,9 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { CreatePublicationDto } from './dto/create-publication.dto';
 import { UpdatePublicationDto } from './dto/update-publication.dto';
+import { MediasService } from 'src/medias/medias.service';
+import { PublicationsRepository } from './publications.repository';
 
 @Injectable()
 export class PublicationsService {
+  constructor(
+    @Inject(forwardRef(() => MediasService))
+    private mediasService: MediasService,
+    private publicationsRepository: PublicationsRepository,
+  ) { }
+
   create(createPublicationDto: CreatePublicationDto) {
     return 'This action adds a new publication';
   }
@@ -12,8 +20,12 @@ export class PublicationsService {
     return `This action returns all publications`;
   }
 
-  findOne(id: number) {
+  findOnePublication(id: number) {
     return `This action returns a #${id} publication`;
+  }
+
+  findPublicationByMediaId(mediaId: number) {
+    return this.publicationsRepository.findPublicationByMediaId(mediaId);
   }
 
   update(id: number, updatePublicationDto: UpdatePublicationDto) {

@@ -7,22 +7,27 @@ import { PrismaService } from '../src/prisma/prisma.service';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication;
-  let prisma: PrismaService;
+  let prisma: PrismaService = new PrismaService();
   let server;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule, PrismaModule],
-    }).compile();
+      imports: [AppModule],
+    })
+      .overrideProvider(PrismaService)
+      .useValue(prisma)
+      .compile();
+
 
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
-
-    prisma = await moduleFixture.resolve(PrismaService);
-    //TODO: fazer função cleanDB para limpar o banco de testes antes de cada execução
+    
+    //prisma = await moduleFixture.resolve(PrismaService);
 
     await app.init();
     server = app.getHttpServer();
+
+    //TODO: fazer função cleanDB para limpar o banco de testes antes de cada execução
   });
 
   it('/ (GET)', () => {

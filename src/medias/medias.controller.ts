@@ -1,34 +1,33 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Put, ParseIntPipe } from '@nestjs/common';
 import { MediasService } from './medias.service';
-import { CreateMediaDto } from './dto/create-media.dto';
-import { UpdateMediaDto } from './dto/update-media.dto';
+import { CreateOrUpdateMediaDto } from './dto/create-media.dto';
 
-@Controller('medias')
+@Controller("medias")
 export class MediasController {
-  constructor(private readonly mediasService: MediasService) {}
+  constructor(private readonly mediasService: MediasService) { }
 
   @Post()
-  create(@Body() createMediaDto: CreateMediaDto) {
-    return this.mediasService.create(createMediaDto);
+  createMedia(@Body() createMediaDto: CreateOrUpdateMediaDto) {
+    return this.mediasService.createMedia(createMediaDto);
   }
 
   @Get()
-  findAll() {
-    return this.mediasService.findAll();
+  findAllMedias() {
+    return this.mediasService.findAllMedias();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.mediasService.findOne(+id);
+  @Get(":id")
+  findOneMedia(@Param("id", ParseIntPipe) id: number) {
+    return this.mediasService.findOneMedia(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMediaDto: UpdateMediaDto) {
-    return this.mediasService.update(+id, updateMediaDto);
+  @Put(":id")
+  updateMedia(@Param("id", ParseIntPipe) id: number, @Body() updateMediaDto: CreateOrUpdateMediaDto) {
+    return this.mediasService.updateMedia(+id, updateMediaDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.mediasService.remove(+id);
+  @Delete(":id")
+  removeMedia(@Param("id", ParseIntPipe) id: number) {
+    return this.mediasService.removeMedia(+id);
   }
 }
