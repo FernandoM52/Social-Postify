@@ -3,8 +3,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { PostsModule } from './posts/posts.module';
-import { MediasModule } from './medias/medias.module';
 import { PublicationsModule } from './publications/publications.module';
+import { MediasModule } from './medias/medias.module';
 
 @Module({
   imports: [PrismaModule, PostsModule, MediasModule, PublicationsModule],

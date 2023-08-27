@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, Delete, Put, ParseIntPipe } from '@nestjs/common';
-import { MediasService } from './medias.service';
 import { CreateOrUpdateMediaDto } from './dto/create-media.dto';
+import { MediasService } from './medias.service';
 
 @Controller("medias")
 export class MediasController {

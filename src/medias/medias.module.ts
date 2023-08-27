@@ -1,8 +1,8 @@
-import { Module, forwardRef } from '@nestjs/common';
-import { MediasService } from './medias.service';
-import { MediasController } from './medias.controller';
-import { MediasRepository } from './medias.repository';
-import { PublicationsModule } from 'src/publications/publications.module';
+import { Module, forwardRef } from "@nestjs/common";
+import { MediasController } from "./medias.controller";
+import { MediasRepository } from "./medias.repository";
+import { MediasService } from "./medias.service";
+import { PublicationsModule } from "../publications/publications.module";
 
 @Module({
   imports: [forwardRef(() => PublicationsModule)],

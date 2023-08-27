@@ -1,8 +1,8 @@
 import { Inject, Injectable, forwardRef } from "@nestjs/common";
 import { CreateOrUpdateMediaDto } from "./dto/create-media.dto";
 import { MediasRepository } from "./medias.repository";
-import { PublicationsService } from "src/publications/publications.service";
-import * as mediaError from "src/errors/medias";
+import { PublicationsService } from "../publications/publications.service";
+import * as mediaError from "../errors/medias";
 
 @Injectable()
 export class MediasService {
@@ -15,7 +15,7 @@ export class MediasService {
   async createMedia(body: CreateOrUpdateMediaDto) {
     const { title, username } = body;
     await this.verifyUsernameExistOnMedia(title, username);
-    
+
     return await this.mediasRepository.createMedia(title, username);
   }
 
