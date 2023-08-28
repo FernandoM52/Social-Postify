@@ -7,8 +7,10 @@ export class PublicationsRepository {
   constructor(private prisma: PrismaService) { }
 
   async findPublicationByMediaId(mediaId: number) {
-    return await this.prisma.publications.findFirst({
-      where: { mediaId }
-    });
+    return await this.prisma.publications.findFirst({ where: { mediaId } });
+  }
+
+  async findPublicationByPostId(postId: number) {
+    return await this.prisma.publications.findFirst({ where: { postId } });
   }
 }

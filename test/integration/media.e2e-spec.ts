@@ -97,7 +97,7 @@ describe('MediaController (e2e)', () => {
     });
 
     it("Should return status code 404 when id does not exist", async () => {
-      const id = faker.number.int({ min: 10000 });
+      const id = faker.number.int({ min: 10000, max: 1200000 });
       const { statusCode } = await server.get(`/medias/${id}`);
 
       expect(statusCode).toBe(HttpStatus.NOT_FOUND);
@@ -135,7 +135,7 @@ describe('MediaController (e2e)', () => {
 
     describe("When body is valid", () => {
       it("Should return status code 404 when id does not exist", async () => {
-        const id = faker.number.int({ min: 10000 });
+        const id = faker.number.int({ min: 10000, max: 1200000 });
         const { statusCode } = await server.put(`/medias/${id}`).send({
           title: faker.internet.url(),
           username: faker.internet.userName()
@@ -173,7 +173,7 @@ describe('MediaController (e2e)', () => {
     });
 
     it("Should return status code 404 when id does not exist", async () => {
-      const id = faker.number.int({ min: 10000 });
+      const id = faker.number.int({ min: 10000, max: 1200000 });
       const { statusCode } = await server.delete(`/medias/${id}`);
 
       expect(statusCode).toBe(HttpStatus.NOT_FOUND);

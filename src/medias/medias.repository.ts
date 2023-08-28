@@ -46,7 +46,14 @@ export class MediasRepository {
 
   async deleteOneMedia(id: number) {
     return await this.prisma.medias.delete({
-      where: { id }
+      where: {
+        id,
+        AND: {
+          publications: {
+            none: {}
+          }
+        }
+      }
     });
   }
 }

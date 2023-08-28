@@ -1,26 +1,47 @@
-import { Injectable } from '@nestjs/common';
-import { CreatePostDto } from './dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto';
+import { ForbiddenException, Inject, Injectable, NotFoundException, forwardRef } from '@nestjs/common';
+import { CreateOrUpdatePostDto } from './dto/create-post.dto';
+import { PostsRepository } from './posts.repository';
+import { PublicationsService } from '../publications/publications.service';
 
 @Injectable()
 export class PostsService {
-  create(createPostDto: CreatePostDto) {
-    return 'This action adds a new post';
+  constructor(
+    private readonly postsRepository: PostsRepository,
+    @Inject(forwardRef(() => PublicationsService))
+    private readonly publicationsService: PublicationsService
+  ) { }
+
+  createPost(body: CreateOrUpdatePostDto) {
+    return this.postsRepository.createPost(body);
   }
 
   findAll() {
-    return `This action returns all posts`;
+    return this.postsRepository.findAll();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} post`;
+  async findOne(id: number) {
+    const post = await this.verifyPostExist(id);
+    return post;
   }
 
-  update(id: number, updatePostDto: UpdatePostDto) {
-    return `This action updates a #${id} post`;
+  async update(id: number, body: CreateOrUpdatePostDto) {
+    await this.verifyPostExist(id);
+    return this.postsRepository.update(id, body);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} post`;
+  async remove(id: number) {
+    const post = await this.verifyPostExist(id);
+
+    const postHasPublication = await this.publicationsService.findPublicationByPostId(post.id)
+    if (postHasPublication) throw new ForbiddenException(`Cannot delete post with id ${post.id}, there is a publication associated with it`);
+
+    await this.postsRepository.remove(id);
+  }
+
+  async verifyPostExist(id: number) {
+    const post = await this.postsRepository.findOne(id);
+    if (!post) throw new NotFoundException(`The post with id '${id}' does not exist`);
+
+    return post;
   }
 }

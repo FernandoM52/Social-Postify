@@ -47,7 +47,7 @@ describe('MediaController (e2e)', () => {
       it("When body does not have field 'image', should create a post and return it with status code 201", async () => {
         const { statusCode, body } = await server.post("/posts").send({
           title: faker.lorem.sentence({ min: 3, max: 6 }),
-          username: faker.internet.url()
+          text: faker.internet.url()
         });
 
         expect(statusCode).toBe(HttpStatus.CREATED);
@@ -63,7 +63,7 @@ describe('MediaController (e2e)', () => {
       it("When body have field 'image', should create a post and return it with status code 201", async () => {
         const { statusCode, body } = await server.post("/posts").send({
           title: faker.lorem.sentence({ min: 3, max: 6 }),
-          username: faker.internet.url(),
+          text: faker.internet.url(),
           image: faker.image.url()
         });
 
@@ -93,7 +93,7 @@ describe('MediaController (e2e)', () => {
       const { statusCode, body } = await server.get("/posts");
 
       expect(statusCode).toBe(HttpStatus.OK);
-      expect(body).toHaveLength(4);
+      expect(body).toHaveLength(3);
       expect(body).toEqual(
         expect.arrayContaining([
           expect.objectContaining({
@@ -116,7 +116,7 @@ describe('MediaController (e2e)', () => {
     });
 
     it("Should return status code 404 when id does not exist", async () => {
-      const id = faker.number.int({ min: 10000 });
+      const id = faker.number.int({ min: 10000, max: 1200000 });
       const { statusCode } = await server.get(`/posts/${id}`);
 
       expect(statusCode).toBe(HttpStatus.NOT_FOUND);
@@ -159,7 +159,7 @@ describe('MediaController (e2e)', () => {
 
     describe("When body is valid", () => {
       it("Should return status code 404 when id does not exist", async () => {
-        const id = faker.number.int({ min: 10000 });
+        const id = faker.number.int({ min: 10000, max: 1200000 });
         const { statusCode } = await server.put(`/posts/${id}`).send({
           title: faker.lorem.sentence({ min: 3, max: 6 }),
           text: faker.internet.url(),
@@ -176,7 +176,7 @@ describe('MediaController (e2e)', () => {
         const { statusCode } = await server.put(`/posts/${id}`).send({ title, text });
         const post = await postFactory.getPostById(prisma, id);
 
-        expect(statusCode).toBe(HttpStatus.OK);
+        expect(statusCode).toBe(HttpStatus.NO_CONTENT);
         expect(post).toEqual(
           expect.objectContaining({
             id,
@@ -198,8 +198,8 @@ describe('MediaController (e2e)', () => {
     });
 
     it("Should return status code 404 when id does not exist", async () => {
-      const id = faker.number.int({ min: 10000 });
-      const { statusCode } = await server.put(`/posts/${id}`)
+      const id = faker.number.int({ min: 10000, max: 1200000 });
+      const { statusCode } = await server.delete(`/posts/${id}`)
 
       expect(statusCode).toBe(HttpStatus.NOT_FOUND);
     });
@@ -208,7 +208,7 @@ describe('MediaController (e2e)', () => {
       const { id } = await postFactory.createPost(prisma);
       const { statusCode } = await server.delete(`/posts/${id}`)
 
-      expect(statusCode).toBe(HttpStatus.OK);
+      expect(statusCode).toBe(HttpStatus.NO_CONTENT);
     });
   });
 });
