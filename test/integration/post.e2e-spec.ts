@@ -168,7 +168,7 @@ describe('MediaController (e2e)', () => {
         expect(statusCode).toBe(HttpStatus.NOT_FOUND);
       });
 
-      it("Should update the media respecting the id and return status code 200", async () => {
+      it("Should update the media respecting the id and return status code 204", async () => {
         const { id } = await postFactory.createPost(prisma);
         const title = faker.internet.url();
         const text = faker.internet.userName();
@@ -199,14 +199,14 @@ describe('MediaController (e2e)', () => {
 
     it("Should return status code 404 when id does not exist", async () => {
       const id = faker.number.int({ min: 10000, max: 1200000 });
-      const { statusCode } = await server.delete(`/posts/${id}`)
+      const { statusCode } = await server.delete(`/posts/${id}`);
 
       expect(statusCode).toBe(HttpStatus.NOT_FOUND);
     });
 
-    it("Should delete the media respecting the id", async () => {
+    it("Should delete the media respecting the id and return status code 204", async () => {
       const { id } = await postFactory.createPost(prisma);
-      const { statusCode } = await server.delete(`/posts/${id}`)
+      const { statusCode } = await server.delete(`/posts/${id}`);
 
       expect(statusCode).toBe(HttpStatus.NO_CONTENT);
     });

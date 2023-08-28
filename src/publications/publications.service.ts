@@ -1,6 +1,5 @@
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
-import { CreatePublicationDto } from './dto/create-publication.dto';
-import { UpdatePublicationDto } from './dto/update-publication.dto';
+import { ForbiddenException, Inject, Injectable, NotFoundException, forwardRef } from '@nestjs/common';
+import { CreateOrUpdatePublicationDto } from './dto/create-publication.dto';
 import { PublicationsRepository } from './publications.repository';
 import { MediasService } from '../medias/medias.service';
 import { PostsService } from '../posts/posts.service';
@@ -15,25 +14,46 @@ export class PublicationsService {
     private readonly postsService: PostsService,
   ) { }
 
-  create(createPublicationDto: CreatePublicationDto) {
-    return 'This action adds a new publication';
+  async create(createPublicationDto: CreateOrUpdatePublicationDto) {
+    await this.mediasService.verifyMediaExist(createPublicationDto.mediaId);
+    await this.postsService.verifyPostExist(createPublicationDto.postId);
+    return this.publicationsRepository.create(createPublicationDto);
   }
 
-  findAll() {
-    return `This action returns all publications`;
+  findAll(published: boolean | null, after: string | null) {
+    return this.publicationsRepository.findAll(published, after);
   }
 
-  findOnePublication(id: number) {
-    return `This action returns a #${id} publication`;
+  async findOnePublication(id: number) {
+    const publication = await this.verifyPublicationExist(id);
+    return publication;
   }
 
 
-  update(id: number, updatePublicationDto: UpdatePublicationDto) {
-    return `This action updates a #${id} publication`;
+  async update(id: number, updatePublicationDto: CreateOrUpdatePublicationDto) {
+    const publication = await this.verifyPublicationExist(id);
+    await this.mediasService.verifyMediaExist(updatePublicationDto.mediaId);
+    await this.postsService.verifyPostExist(updatePublicationDto.postId);
+    await this.verifyPublicationDate(publication.date);
+
+    return this.publicationsRepository.update(id, updatePublicationDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} publication`;
+  async remove(id: number) {
+    await this.verifyPublicationExist(id);
+    return this.publicationsRepository.remove(id);
+  }
+
+  async verifyPublicationExist(id: number) {
+    const publication = await this.publicationsRepository.findOne(id);
+    if (!publication) throw new NotFoundException(`The publication with id '${id}' does not exist`);
+
+    return publication;
+  }
+
+  async verifyPublicationDate(publicationDate: Date) {
+    const currentDate = new Date();
+    if (publicationDate.getTime() < currentDate.getTime()) throw new ForbiddenException(`The publication has already been done`)
   }
 
   findPublicationByMediaId(mediaId: number) {
