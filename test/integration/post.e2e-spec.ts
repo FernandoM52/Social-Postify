@@ -5,13 +5,13 @@ import { AppModule } from "../../src/app.module";
 import { PrismaService } from "../../src/prisma/prisma.service";
 import { E2EUtils } from "../helpers/cleanDb";
 import { faker } from "@faker-js/faker";
-import { MediaFactory } from "../factories/media-factory";
+import { PostFactory } from "../factories/post-factory copy";
 
 describe('MediaController (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService = new PrismaService();
   let server: request.SuperTest<request.Test>;
-  let mediaFactory: MediaFactory = new MediaFactory();
+  let postFactory: PostFactory = new PostFactory();
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -32,11 +32,11 @@ describe('MediaController (e2e)', () => {
     await cleanDb(prisma);
   });
 
-  describe("POST /medias", () => {
+  describe("POST /posts", () => {
     describe("When body is invalid", () => {
-      it("Should not create a media and return status code 400", async () => {
-        const { statusCode } = await server.post("/medias").send({
-          title: "", username: ""
+      it("Should not create a post and return status code 400", async () => {
+        const { statusCode } = await server.post("/posts").send({
+          title: "", text: "", image: ""
         });
 
         expect(statusCode).toBe(HttpStatus.BAD_REQUEST);
@@ -44,10 +44,10 @@ describe('MediaController (e2e)', () => {
     });
 
     describe("When body is valid", () => {
-      it("Should create a media and return the media created with status code 201", async () => {
-        const { statusCode, body } = await server.post("/medias").send({
-          title: faker.internet.url(),
-          username: faker.internet.userName()
+      it("When body does not have field 'image', should create a post and return it with status code 201", async () => {
+        const { statusCode, body } = await server.post("/posts").send({
+          title: faker.lorem.sentence({ min: 3, max: 6 }),
+          username: faker.internet.url()
         });
 
         expect(statusCode).toBe(HttpStatus.CREATED);
@@ -55,24 +55,42 @@ describe('MediaController (e2e)', () => {
           expect.objectContaining({
             id: expect.any(Number),
             title: expect.any(String),
-            username: expect.any(String)
+            text: expect.any(String)
+          })
+        );
+      });
+
+      it("When body have field 'image', should create a post and return it with status code 201", async () => {
+        const { statusCode, body } = await server.post("/posts").send({
+          title: faker.lorem.sentence({ min: 3, max: 6 }),
+          username: faker.internet.url(),
+          image: faker.image.url()
+        });
+
+        expect(statusCode).toBe(HttpStatus.CREATED);
+        expect(body).toEqual(
+          expect.objectContaining({
+            id: expect.any(Number),
+            title: expect.any(String),
+            text: expect.any(String),
+            image: expect.any(String)
           })
         );
       });
     });
   });
 
-  describe("GET /medias", () => {
+  describe("GET /posts", () => {
     it("Should return a empty array when there are not post created", async () => {
-      const { statusCode, body } = await server.get("/medias");
+      const { statusCode, body } = await server.get("/posts");
 
       expect(statusCode).toBe(HttpStatus.OK);
       expect(body).toEqual([]);
     });
 
-    it("Should return a array of medias when there are already medias created", async () => {
-      for (let i = 0; i < 4; i++) await mediaFactory.createMedia(prisma);
-      const { statusCode, body } = await server.get("/medias");
+    it("Should return a array of posts when there are already posts created", async () => {
+      for (let i = 0; i < 3; i++) await postFactory.createPost(prisma, (i <= 2));
+      const { statusCode, body } = await server.get("/posts");
 
       expect(statusCode).toBe(HttpStatus.OK);
       expect(body).toHaveLength(4);
@@ -81,52 +99,58 @@ describe('MediaController (e2e)', () => {
           expect.objectContaining({
             id: expect.any(Number),
             title: expect.any(String),
-            username: expect.any(String)
+            text: expect.any(String),
+            image: expect.any(String)
           })
         ])
       );
     });
   });
 
-  describe("GET /medias:id", () => {
+  describe("GET /posts:id", () => {
     it("Should return status code 400 when id is invalid format", async () => {
       const id = faker.person.firstName();
-      const { statusCode } = await server.get(`/medias/${id}`);
+      const { statusCode } = await server.get(`/posts/${id}`);
 
       expect(statusCode).toBe(HttpStatus.BAD_REQUEST);
     });
 
     it("Should return status code 404 when id does not exist", async () => {
       const id = faker.number.int({ min: 10000 });
-      const { statusCode } = await server.get(`/medias/${id}`);
+      const { statusCode } = await server.get(`/posts/${id}`);
 
       expect(statusCode).toBe(HttpStatus.NOT_FOUND);
     });
 
     it("Should return a media object respecting the id", async () => {
-      const { id, title, username } = await mediaFactory.createMedia(prisma);
-      const { statusCode, body } = await server.get(`/medias/${id}`);
+      const post = await postFactory.createPost(prisma);
+      const { statusCode, body } = await server.get(`/posts/${post.id}`);
 
       expect(statusCode).toBe(HttpStatus.OK);
       expect(body).toEqual(
-        expect.objectContaining({ id, title, username, })
+        expect.objectContaining({
+          id: post.id,
+          title: post.title,
+          text: post.text,
+          image: post.image
+        })
       );
     });
   });
 
-  describe("PUT /medias:id", () => {
+  describe("PUT /posts:id", () => {
     it("Should return status code 400 when id is invalid format", async () => {
       const id = faker.person.firstName();
-      const { statusCode } = await server.put(`/medias/${id}`);
+      const { statusCode } = await server.put(`/posts/${id}`);
 
       expect(statusCode).toBe(HttpStatus.BAD_REQUEST);
     });
 
     describe("When body is invalid", () => {
       it("Should return status code 400", async () => {
-        const { id } = await mediaFactory.createMedia(prisma);
-        const { statusCode } = await server.put(`/medias/${id}`).send({
-          title: "", username: ""
+        const { id } = await postFactory.createPost(prisma);
+        const { statusCode } = await server.put(`/posts/${id}`).send({
+          title: "", text: "", image: ""
         })
 
         expect(statusCode).toBe(HttpStatus.BAD_REQUEST);
@@ -136,52 +160,53 @@ describe('MediaController (e2e)', () => {
     describe("When body is valid", () => {
       it("Should return status code 404 when id does not exist", async () => {
         const id = faker.number.int({ min: 10000 });
-        const { statusCode } = await server.put(`/medias/${id}`).send({
-          title: faker.internet.url(),
-          username: faker.internet.userName()
+        const { statusCode } = await server.put(`/posts/${id}`).send({
+          title: faker.lorem.sentence({ min: 3, max: 6 }),
+          text: faker.internet.url(),
         });
 
         expect(statusCode).toBe(HttpStatus.NOT_FOUND);
       });
 
       it("Should update the media respecting the id and return status code 200", async () => {
-        const { id } = await mediaFactory.createMedia(prisma);
+        const { id } = await postFactory.createPost(prisma);
         const title = faker.internet.url();
-        const username = faker.internet.userName();
+        const text = faker.internet.userName();
 
-        const { statusCode } = await server.put(`/medias/${id}`).send({ title, username });
-        const media = await mediaFactory.getMediaById(prisma, id);
+        const { statusCode } = await server.put(`/posts/${id}`).send({ title, text });
+        const post = await postFactory.getPostById(prisma, id);
 
         expect(statusCode).toBe(HttpStatus.OK);
-        expect(media).toEqual(
+        expect(post).toEqual(
           expect.objectContaining({
             id,
-            title: media.title,
-            username: media.username
+            title: post.title,
+            text: post.text,
+            image: post.image
           })
         );
       });
     })
   });
 
-  describe("DELETE /medias:id", () => {
+  describe("DELETE /posts:id", () => {
     it("Should return status code 400 when id is invalid format", async () => {
       const id = faker.person.firstName();
-      const { statusCode } = await server.delete(`/medias/${id}`);
+      const { statusCode } = await server.delete(`/posts/${id}`);
 
       expect(statusCode).toBe(HttpStatus.BAD_REQUEST);
     });
 
     it("Should return status code 404 when id does not exist", async () => {
       const id = faker.number.int({ min: 10000 });
-      const { statusCode } = await server.delete(`/medias/${id}`);
+      const { statusCode } = await server.put(`/posts/${id}`)
 
       expect(statusCode).toBe(HttpStatus.NOT_FOUND);
     });
 
     it("Should delete the media respecting the id", async () => {
-      const { id } = await mediaFactory.createMedia(prisma);
-      const { statusCode } = await server.delete(`/medias/${id}`)
+      const { id } = await postFactory.createPost(prisma);
+      const { statusCode } = await server.delete(`/posts/${id}`)
 
       expect(statusCode).toBe(HttpStatus.OK);
     });
